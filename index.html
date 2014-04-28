@@ -1,0 +1,74 @@
+<html>
+	<head>
+		<title>Infinite Bubblegum</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	</head>
+	<body>
+		<script src="js/three.min.js"></script>
+
+		<script id="vertexShader" type="x-shader/x-vertex">
+			void main()	{
+				gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+			}
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			uniform float time;
+			uniform vec2 resolution;
+			void main()	{
+				gl_FragColor=vec4(cos(time)*gl_FragCoord.y/resolution.y, gl_FragCoord.x/resolution.x, sin(time), 1.0);
+			}
+		</script>
+
+		<script>
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.body.appendChild(renderer.domElement);
+
+
+            var uniforms = {
+					     time: { type: "f", value: 1.0 },
+					     resolution: { type: "v2", value: new THREE.Vector2()}
+				       };
+				uniforms.resolution.value.x = window.innerWidth;
+				uniforms.resolution.value.y = window.innerHeight;
+			var geometry = new THREE.SphereGeometry(5, 50, 50);
+			//new THREE.MeshBasicMaterial({color: 0x00ff00});//
+			var material = new THREE.ShaderMaterial({
+				                                      uniforms: uniforms,
+				                                      vertexShader: document.getElementById('vertexShader').textContent,
+				                                      fragmentShader: document.getElementById('fragmentShader').textContent
+				                                  });
+			var sphere = new THREE.Mesh(geometry, material);
+			scene.add(sphere);
+
+			camera.position.z = 50;
+
+			var gravity = -0.1,
+				speed = 0.0;
+
+
+			var render = function () {
+				requestAnimationFrame(render);
+
+				
+
+				speed += gravity;
+				if(sphere.position.y < -9.0) speed =- speed*0.95;
+				sphere.position.y += speed;
+
+				uniforms.time.value += 0.01;
+				if(uniforms.time.value > 1.0) uniforms.time.value=0.0;
+
+				renderer.render(scene, camera);
+				
+			};
+
+			render();
+		</script>
+	</body>
+</html>
